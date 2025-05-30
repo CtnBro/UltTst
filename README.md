@@ -4,99 +4,116 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Protege múltiplas execuções
-if playerGui:FindFirstChild("SeedSpawnerGUI") then
-	playerGui:FindFirstChild("SeedSpawnerGUI"):Destroy()
+if playerGui:FindFirstChild("HellSeedGUI") then
+	playerGui.HellSeedGUI:Destroy()
 end
 
--- GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SeedSpawnerGUI"
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = playerGui
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "HellSeedGUI"
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.ResetOnSpawn = false
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 150)
-Frame.Position = UDim2.new(0.35, 0, 0.4, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.Active = true
-Frame.Draggable = true
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 420, 0, 240)
+frame.Position = UDim2.new(0.3, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
 
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
 
-local TitleBox = Instance.new("TextLabel", Frame)
-TitleBox.Size = UDim2.new(0.9, 0, 0.2, 0)
-TitleBox.Position = UDim2.new(0.05, 0, 0.05, 0)
-TitleBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-TitleBox.BackgroundTransparency = 0.4
-TitleBox.Font = Enum.Font.Gotham
-TitleBox.Text = "Seed Spawner"
-TitleBox.TextColor3 = Color3.fromRGB(255, 215, 0)
-TitleBox.TextScaled = true
-TitleBox.TextStrokeTransparency = 0.7
-TitleBox.TextTransparency = 0.05
-TitleBox.BorderSizePixel = 0
-TitleBox.Parent = Frame
+local glow = Instance.new("UIGradient", frame)
+glow.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+}
+glow.Rotation = 90
 
-local titleCorner = Instance.new("UICorner", TitleBox)
-titleCorner.CornerRadius = UDim.new(0, 12)
+-- Título
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0.2, 0)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "🌑 Seed Spawner 🌑"
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.BackgroundTransparency = 1
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
 
-local TextBox = Instance.new("TextBox", Frame)
-TextBox.Position = UDim2.new(0.05, 0, 0.35, 0)
-TextBox.Size = UDim2.new(0.9, 0, 0.2, 0)
-TextBox.PlaceholderText = "Digite o nome da semente"
-TextBox.Font = Enum.Font.Gotham
-TextBox.TextSize = 18
-TextBox.TextColor3 = Color3.new(1, 1, 1)
-TextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-TextBox.BorderSizePixel = 0
+-- Barreira Infernal
+local bottom = Instance.new("TextLabel", frame)
+bottom.Size = UDim2.new(1, 0, 0.1, 0)
+bottom.Position = UDim2.new(0, 0, 0.9, 0)
+bottom.BackgroundTransparency = 1
+bottom.TextColor3 = Color3.fromRGB(200, 0, 0)
+bottom.Text = "DEV BY Tr1nX_777"
+bottom.Font = Enum.Font.Arcade
+bottom.TextScaled = true
 
-local textBoxCorner = Instance.new("UICorner", TextBox)
-textBoxCorner.CornerRadius = UDim.new(0, 12)
+local textbox = Instance.new("TextBox", frame)
+textbox.Size = UDim2.new(0.9, 0, 0.2, 0)
+textbox.Position = UDim2.new(0.05, 0, 0.3, 0)
+textbox.PlaceholderText = "Digite o nome da fruta sombria..."
+textbox.Font = Enum.Font.FredokaOne
+textbox.TextScaled = true
+textbox.TextColor3 = Color3.fromRGB(255, 0, 0)
+textbox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+textbox.BorderSizePixel = 0
 
-local Button = Instance.new("TextButton", Frame)
-Button.Position = UDim2.new(0.05, 0, 0.65, 0)
-Button.Size = UDim2.new(0.9, 0, 0.25, 0)
-Button.Text = "Spawn"
-Button.Font = Enum.Font.Gotham
-Button.TextSize = 24
-Button.TextColor3 = Color3.new(1, 1, 1)
-Button.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-Button.BorderSizePixel = 0
+Instance.new("UICorner", textbox).CornerRadius = UDim.new(0, 10)
 
-local btnCorner = Instance.new("UICorner", Button)
-btnCorner.CornerRadius = UDim.new(0, 12)
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(0.9, 0, 0.25, 0)
+button.Position = UDim2.new(0.05, 0, 0.55, 0)
+button.Text = "🩸 INVOCAR 🩸"
+button.Font = Enum.Font.GothamBlack
+button.TextScaled = true
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+button.BorderSizePixel = 0
 
--- Função para clonar e adicionar a semente ao inventário
-local function spawnSeed(seedName)
+Instance.new("UICorner", button).CornerRadius = UDim.new(0, 12)
+
+-- Sombra pulsante
+task.spawn(function()
+	while true do
+		button.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+		wait(0.3)
+		button.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+		wait(0.3)
+	end
+end)
+
+-- Som demoníaco
+local function spawnHellSeed(seedName)
 	local seedFolder = ReplicatedStorage:FindFirstChild("Seeds")
 	if not seedFolder then
-		warn("Pasta 'Seeds' não encontrada em ReplicatedStorage.")
+		warn("Pasta Seeds não encontrada.")
 		return
 	end
 
-	local seed = seedFolder:FindFirstChild(seedName)
-	if not seed then
-		warn("Semente '" .. seedName .. "' não encontrada.")
-		return
-	end
+	local realName = seedName:gsub(" seed", ""):gsub("Seed", ""):gsub("^%l", string.upper)
+	local seed = seedFolder:FindFirstChild(realName)
+	if seed then
+		local clone = seed:Clone()
+		clone.Parent = player.Backpack
 
-	local clone = seed:Clone()
-	clone.Parent = player.Backpack
+		button.Text = "✔️ INVOCADA"
+		button.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+		wait(1)
+		button.Text = "🩸 INVOCAR 🩸"
+	else
+		button.Text = "❌ DESCONHECIDA"
+		button.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+		wait(1)
+		button.Text = "🩸 INVOCAR 🩸"
+	end
 end
 
-Button.MouseButton1Click:Connect(function()
-	local inputText = TextBox.Text
-	if inputText == "" then
-		return
+button.MouseButton1Click:Connect(function()
+	local text = textbox.Text
+	if text and #text > 0 then
+		spawnHellSeed(text)
 	end
-
-	-- Normaliza o nome da semente
-	local seedName = inputText:gsub(" seed", ""):gsub("Seed", ""):gsub("^%l", string.upper)
-
-	spawnSeed(seedName)
 end)
 ]])()
