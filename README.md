@@ -1,14 +1,13 @@
 loadstring([[
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- Remove GUI se já existir
 if playerGui:FindFirstChild("IngeniousScriptDupeGUI") then
 	playerGui.IngeniousScriptDupeGUI:Destroy()
-end
-if playerGui:FindFirstChild("WeatherControlGUI") then
-	playerGui.WeatherControlGUI:Destroy()
 end
 
 -- Função para criar UICorner facilmente
@@ -88,7 +87,6 @@ ButtonDupe.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
 ButtonDupe.BorderSizePixel = 0
 addUICorner(ButtonDupe, 16)
 
--- Feedback do botão dupe
 local function setDupeButtonState(text, color)
 	ButtonDupe.Text = text
 	ButtonDupe.BackgroundColor3 = color
@@ -98,24 +96,20 @@ local function setDupeButtonState(text, color)
 	end)
 end
 
--- Função para obter controlador de animação (Humanoid ou AnimationController)
 local function getAnimController(tool)
 	return tool:FindFirstChildOfClass("AnimationController") or tool:FindFirstChildOfClass("Humanoid")
 end
 
--- Evento clique dupe
 ButtonDupe.MouseButton1Click:Connect(function()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local heldTool = character:FindFirstChildOfClass("Tool")
 
 	if heldTool and humanoid then
-		-- Clona e equipa o clone
 		local clone = heldTool:Clone()
 		clone.Parent = character
 		humanoid:EquipTool(clone)
 
-		-- Replicar animações do original para o clone
 		local origAnimCtrl = getAnimController(heldTool)
 		local cloneAnimCtrl = getAnimController(clone)
 
@@ -137,66 +131,169 @@ ButtonDupe.MouseButton1Click:Connect(function()
 	end
 end)
 
--- === Título do menu clima ===
-local WeatherTitle = Instance.new("TextLabel", Frame)
-WeatherTitle.Position = UDim2.new(0.05, 0, 0.35, 0)
-WeatherTitle.Size = UDim2.new(0.9, 0, 0.1, 0)
-WeatherTitle.Font = Enum.Font.GothamBlack
-WeatherTitle.Text = "🌩️ CONTROLE DE CLIMA / EVENTOS 🌩️"
-WeatherTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
-WeatherTitle.TextScaled = true
-WeatherTitle.TextStrokeTransparency = 0.6
-WeatherTitle.BackgroundTransparency = 1
+-- === MENU ESP E VOAR ===
+local ESPEnabled = false
+local FlyEnabled = false
 
--- Função para enviar evento para servidor
-local function activateWeather(weatherType)
-	-- Atenção: o RemoteEvent 'WeatherEvent' deve existir no ReplicatedStorage do jogo
-	local weatherEvent = game:GetService("ReplicatedStorage"):FindFirstChild("WeatherEvent")
-	if weatherEvent then
-		weatherEvent:FireServer(weatherType)
-		-- Feedback visual de sucesso
-		WeatherStatus.Text = "Evento ativado: "..weatherType
-		WeatherStatus.TextColor3 = Color3.fromRGB(0, 255, 0)
+local ESPButton = Instance.new("TextButton", Frame)
+ESPButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+ESPButton.Size = UDim2.new(0.9, 0, 0.13, 0)
+ESPButton.Text = "🧟‍♂️ ESP: OFF"
+ESPButton.Font = Enum.Font.GothamBold
+ESPButton.TextSize = 24
+ESPButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+ESPButton.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+ESPButton.BorderSizePixel = 0
+addUICorner(ESPButton, 14)
+
+local FlyButton = Instance.new("TextButton", Frame)
+FlyButton.Position = UDim2.new(0.05, 0, 0.5, 0)
+FlyButton.Size = UDim2.new(0.9, 0, 0.13, 0)
+FlyButton.Text = "🦇 VOAR: OFF"
+FlyButton.Font = Enum.Font.GothamBold
+FlyButton.TextSize = 24
+FlyButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+FlyButton.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+FlyButton.BorderSizePixel = 0
+addUICorner(FlyButton, 14)
+
+local FooterStatus = Instance.new("TextLabel", Frame)
+FooterStatus.Position = UDim2.new(0.05, 0, 0.75, 0)
+FooterStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+FooterStatus.BackgroundTransparency = 1
+FooterStatus.Font = Enum.Font.GothamBold
+FooterStatus.TextSize = 20
+FooterStatus.TextColor3 = Color3.fromRGB(255, 100, 100)
+FooterStatus.Text = "Modo ESP e Voo desativados"
+
+-- ESP Função
+local espHighlights = {}
+
+local function toggleESP()
+	ESPEnabled = not ESPEnabled
+	if ESPEnabled then
+		ESPButton.Text = "🧟‍♂️ ESP: ON"
+		ESPButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+		FooterStatus.Text = "ESP ATIVADO"
+		-- Criar Highlights nos jogadores
+		for _, plr in pairs(Players:GetPlayers()) do
+			if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+				local highlight = Instance.new("Highlight")
+				highlight.Adornee = plr.Character
+				highlight.FillColor = Color3.new(1, 0, 0)
+				highlight.OutlineColor = Color3.new(1, 0, 0)
+				highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				highlight.Parent = player.PlayerGui
+				espHighlights[plr] = highlight
+			end
+		end
+		-- Atualizar highlights para novos jogadores que entrarem
+		Players.PlayerAdded:Connect(function(plr)
+			if ESPEnabled and plr ~= player then
+				plr.CharacterAdded:Connect(function(char)
+					task.wait(1)
+					if ESPEnabled then
+						local highlight = Instance.new("Highlight")
+						highlight.Adornee = char
+						highlight.FillColor = Color3.new(1, 0, 0)
+						highlight.OutlineColor = Color3.new(1, 0, 0)
+						highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+						highlight.Parent = player.PlayerGui
+						espHighlights[plr] = highlight
+					end
+				end)
+			end
+		end)
 	else
-		WeatherStatus.Text = "Erro: WeatherEvent não encontrado"
-		WeatherStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
+		ESPButton.Text = "🧟‍♂️ ESP: OFF"
+		ESPButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+		FooterStatus.Text = "ESP DESATIVADO"
+		for plr, hl in pairs(espHighlights) do
+			if hl then hl:Destroy() end
+		end
+		espHighlights = {}
 	end
 end
 
--- Botões do menu clima
-local WeatherButtons = {
-	{Text = "☀️ Sunny", Color = Color3.fromRGB(50, 205, 50), Event = "Sunny"},
-	{Text = "🌧️ Rain", Color = Color3.fromRGB(30, 144, 255), Event = "Rain"},
-	{Text = "⚡ Thunderstorm", Color = Color3.fromRGB(255, 140, 0), Event = "Thunderstorm"},
-	{Text = "❄️ Frost", Color = Color3.fromRGB(138, 43, 226), Event = "Frost"},
-	{Text = "💰 Sheckle Rain", Color = Color3.fromRGB(255, 215, 0), Event = "SheckleRain"},
-}
+ESPButton.MouseButton1Click:Connect(toggleESP)
 
-local startY = 0.46
-local btnHeight = 0.09
-local WeatherStatus = Instance.new("TextLabel", Frame)
-WeatherStatus.Position = UDim2.new(0.05, 0, 0.85, 0)
-WeatherStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
-WeatherStatus.BackgroundTransparency = 1
-WeatherStatus.Text = ""
-WeatherStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
-WeatherStatus.Font = Enum.Font.GothamBold
-WeatherStatus.TextScaled = true
+-- Voo simples
+local flying = false
+local flySpeed = 100
+local bodyVelocity, bodyGyro
 
-for i, info in ipairs(WeatherButtons) do
-	local btn = Instance.new("TextButton", Frame)
-	btn.Size = UDim2.new(0.9, 0, btnHeight, 0)
-	btn.Position = UDim2.new(0.05, 0, startY + (i-1)*btnHeight, 0)
-	btn.Text = info.Text
-	btn.Font = Enum.Font.GothamBold
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.BackgroundColor3 = info.Color
-	btn.BorderSizePixel = 0
-	btn.AutoButtonColor = true
-	addUICorner(btn, 14)
+local function startFly()
+	if flying then return end
+	flying = true
+	local character = player.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
 
-	btn.MouseButton1Click:Connect(function()
-		activateWeather(info.Event)
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e4, 9e4, 9e4)
+	bodyGyro.CFrame = hrp.CFrame
+	bodyGyro.Parent = hrp
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Velocity = Vector3.new(0,0,0)
+	bodyVelocity.MaxForce = Vector3.new(9e4, 9e4, 9e4)
+	bodyVelocity.Parent = hrp
+
+	RunService:BindToRenderStep("Fly", 301, function()
+		if not flying then return end
+		local moveVector = Vector3.new(0,0,0)
+		if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+			moveVector = moveVector + workspace.CurrentCamera.CFrame.LookVector
+		end
+		if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+			moveVector = moveVector - workspace.CurrentCamera.CFrame.LookVector
+		end
+		if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+			moveVector = moveVector - workspace.CurrentCamera.CFrame.RightVector
+		end
+		if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+			moveVector = moveVector + workspace.CurrentCamera.CFrame.RightVector
+		end
+		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+			moveVector = moveVector + Vector3.new(0,1,0)
+		end
+		if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+			moveVector = moveVector - Vector3.new(0,1,0)
+		end
+		bodyVelocity.Velocity = moveVector.Unit * flySpeed
+		bodyGyro.CFrame = workspace.CurrentCamera.CFrame
 	end)
 end
+
+local function stopFly()
+	if not flying then return end
+	flying = false
+	RunService:UnbindFromRenderStep("Fly")
+	if bodyVelocity then
+		bodyVelocity:Destroy()
+		bodyVelocity = nil
+	end
+	if bodyGyro then
+		bodyGyro:Destroy()
+		bodyGyro = nil
+	end
+end
+
+FlyButton.MouseButton1Click:Connect(function()
+	if FlyEnabled then
+		FlyEnabled = false
+		FlyButton.Text = "🦇 VOAR: OFF"
+		FlyButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+		FooterStatus.Text = "Voo desativado"
+		stopFly()
+	else
+		FlyEnabled = true
+		FlyButton.Text = "🦇 VOAR: ON"
+		FlyButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+		FooterStatus.Text = "Voo ativado - Use WASD, Espaço e Ctrl"
+		startFly()
+	end
+end)
 ]])()
